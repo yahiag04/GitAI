@@ -6,6 +6,8 @@ A modern desktop application that lets you manage Git and GitHub using natural l
 ![License](https://img.shields.io/badge/License-MIT-green.svg)
 ![Platform](https://img.shields.io/badge/Platform-macOS%20%7C%20Linux%20%7C%20Windows-lightgrey.svg)
 
+
+
 ## Features
 
 - **Natural Language Commands** - Type commands like "commit my changes" or "create a branch called feature-login"
