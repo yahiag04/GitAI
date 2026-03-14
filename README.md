@@ -15,44 +15,76 @@ A modern desktop application that lets you manage Git and GitHub using natural l
 - **CLI Mode** - Full functionality available from the terminal
 - **Safe by Default** - Dangerous operations (delete branch, force push) require confirmation
 
+## Demo
+
+```
+> create a new branch for the login feature
+Created and switched to branch 'login-feature'.
+
+> status
+On branch login-feature
+Modified: src/auth.py, src/utils.py
+
+> smart commit
+Committed: a3f2b1c - Add user authentication with session handling
+(AI-generated message)
+
+> push
+Pushed login-feature to origin.
+
+> open pr from login-feature to main
+Created PR #42: https://github.com/user/repo/pull/42
+```
+
 ## Quick Start
 
 ### Installation
 
 ```bash
-# Clone the repository
+# Clone and install
 git clone https://github.com/yourusername/git-assistant.git
 cd git-assistant
+pip install .
 
-# Install dependencies
-pip install -r requirements.txt
+# With desktop UI support
+pip install ".[desktop]"
+```
 
-# Optional: Install desktop UI dependencies
-pip install PySide6
+Or install directly from GitHub:
+```bash
+pip install git+https://github.com/yourusername/git-assistant.git
 ```
 
 ### Configuration
 
-Create a `.env` file in the project root:
+Create a `.env` file in your home directory or project folder:
 
 ```bash
-# Required for GitHub operations
+# Required for GitHub operations (create at https://github.com/settings/tokens)
 GITHUB_TOKEN=your_github_token
 
 # Optional: Enable AI features (at least one recommended)
+# Get OpenAI key at: https://platform.openai.com/api-keys
 OPENAI_API_KEY=your_openai_key
-# or
+
+# Or get Anthropic key at: https://console.anthropic.com/
 ANTHROPIC_API_KEY=your_anthropic_key
 ```
 
 ### Run
 
 ```bash
-# Desktop app
-python main.py
+# Desktop app (requires PySide6)
+git-assistant
 
 # CLI mode
-python main.py --cli
+git-assistant --cli
+```
+
+You can also run directly with Python:
+```bash
+python main.py        # Desktop
+python main.py --cli  # CLI
 ```
 
 ## Supported Commands
@@ -93,6 +125,7 @@ Without an API key, the app uses pattern matching which supports all commands in
 ```
 git-assistant/
 ├── app/
+│   ├── cli.py            # Main entry point
 │   ├── controllers/      # Business logic
 │   └── ui/
 │       ├── cli.py        # Command-line interface
@@ -103,9 +136,10 @@ git-assistant/
 │   ├── git_engine/       # Git operations (GitPython)
 │   ├── github_service/   # GitHub API (PyGithub)
 │   └── action_router/    # Command routing
-├── tests/                # Test suite
-├── main.py               # Entry point
-└── requirements.txt
+├── tests/                # Test suite (48 tests)
+├── main.py               # Direct execution entry point
+├── pyproject.toml        # Package configuration
+└── requirements.txt      # Dependencies
 ```
 
 ## Requirements
@@ -117,16 +151,29 @@ git-assistant/
 - python-dotenv
 - certifi
 
-## Running Tests
+## Development
 
 ```bash
+# Install with dev dependencies
+pip install -e ".[all]"
+
+# Run tests
 pytest tests/ -v
+
+# Run specific test
+pytest tests/test_parse_command.py -v
 ```
 
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
 ## License
 
-MIT License - see LICENSE file for details.
+MIT License - see [LICENSE](LICENSE) file for details.

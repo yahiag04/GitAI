@@ -1,0 +1,57 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "git-assistant"
+version = "1.0.0"
+description = "Manage Git and GitHub using natural language"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.11"
+authors = [
+    {name = "Your Name", email = "your@email.com"}
+]
+keywords = ["git", "github", "cli", "ai", "natural-language"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Environment :: MacOS X",
+    "Environment :: Win32 (MS Windows)",
+    "Environment :: X11 Applications :: Qt",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Version Control :: Git",
+]
+
+dependencies = [
+    "GitPython>=3.1",
+    "PyGithub>=2.0",
+    "python-dotenv>=1.0",
+    "certifi>=2024.0",
+]
+
+[project.optional-dependencies]
+desktop = ["PySide6>=6.7"]
+dev = ["pytest>=8.0"]
+all = ["PySide6>=6.7", "pytest>=8.0"]
+
+[project.scripts]
+git-assistant = "app.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/yourusername/git-assistant"
+Repository = "https://github.com/yourusername/git-assistant"
+Issues = "https://github.com/yourusername/git-assistant/issues"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["app*", "core*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
