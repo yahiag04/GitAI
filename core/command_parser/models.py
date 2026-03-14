@@ -7,7 +7,11 @@ ActionName = Literal[
     "commit_changes",
     "push_changes",
     "create_branch",
+    "checkout_branch",
+    "delete_branch",
     "open_pull_request",
+    "force_push",
+    "show_status",
 ]
 
 

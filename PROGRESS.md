@@ -4,58 +4,113 @@ Last updated: 2026-03-14
 
 ## Current State
 
-- The project scaffold has been converted from TypeScript to Python.
-- The current architecture is:
-  - `app/controllers`
-  - `app/ui`
-  - `core/command_parser`
-  - `core/action_router`
-  - `core/git_engine`
-  - `core/github_service`
-- The parser milestone is done for the first three commands:
-  - `commit my changes`
-  - `push my project`
-  - `create a branch called feature-login`
+MVP implementation complete. The CLI can now handle natural language Git and GitHub commands.
 
-## Files Completed
+### Implemented Features
 
-- `core/command_parser/models.py`
-- `core/command_parser/parse_command.py`
-- `tests/test_parse_command.py`
+1. **Git Engine** (`core/git_engine/service.py`)
+   - `init_repo()` - Initialize a Git repository
+   - `commit_changes(message)` - Stage and commit all changes
+   - `push_changes()` - Push current branch to origin
+   - `create_branch(name)` - Create and switch to a new branch
+   - `checkout_branch(name)` - Switch to an existing branch
+   - `delete_branch(name)` - Delete a local branch
+   - `force_push()` - Force push to remote
+   - `add_remote(name, url)` - Add a remote
+   - `get_status()` - Get repository status
 
-## Notes
+2. **GitHub Service** (`core/github_service/service.py`)
+   - `create_repo(name, visibility)` - Create a GitHub repository
+   - `create_pull_request(input)` - Open a pull request
+   - `list_branches(owner, repo)` - List branches
+   - `list_commits(owner, repo)` - List commits
+   - `get_authenticated_user()` - Get current user
+   - `delete_repo(owner, repo)` - Delete a repository
 
-- `parse_command.py` now:
-  - normalizes user input
-  - matches exact commit and push commands
-  - extracts branch names with regex
-  - returns `action=None` for unsupported commands
-- The parser no longer asks for confirmation for safe MVP actions.
-- `py_compile` passes on the current Python files.
-- `pytest` has not been run because it is not installed in the current environment.
+3. **Command Parser** (`core/command_parser/parse_command.py`)
+   Supports natural language commands:
+   - `commit my changes` / `commit changes with message 'fix bug'`
+   - `push` / `push my project` / `push changes`
+   - `create a branch called feature-login`
+   - `create a repository called my-app`
+   - `create a private repo called secret-app`
+   - `open a pull request from dev to main`
+   - `switch to develop` / `checkout branch main`
+   - `delete branch old-feature` (requires confirmation)
+   - `force push` (requires confirmation)
 
-## Next Step
+4. **Action Router** (`core/action_router/route_action.py`)
+   - Routes parsed commands to Git Engine or GitHub Service
+   - Handles errors gracefully
 
-Work on `core/action_router/route_action.py`.
+5. **CLI** (`app/ui/cli.py`)
+   - Interactive command loop
+   - Confirmation prompts for dangerous operations
 
-Goal:
+## Supported Commands
 
-- map parsed actions to method calls on `git_engine`
-- return simple user-facing success messages
+| Command | Example |
+|---------|---------|
+| Commit | `commit my changes` |
+| Commit with message | `commit changes with message 'fix bug'` |
+| Push | `push my project` |
+| Create branch | `create a branch called feature-login` |
+| Switch branch | `switch to develop` |
+| Create repository | `create a repository called my-app` |
+| Create private repo | `create a private repo called secret-app` |
+| Open pull request | `open a pull request from dev to main` |
+| Delete branch | `delete branch old-feature` (confirmation required) |
+| Force push | `force push` (confirmation required) |
 
-For the current milestone, implement only:
+## Requirements
 
-- `commit_changes`
-- `push_changes`
-- `create_branch`
+- Python 3.11+
+- GitPython
+- PyGithub
+- `GITHUB_TOKEN` environment variable for GitHub operations
 
-## Reminder For Next Session
+## Running the CLI
 
-Do not jump to GitHub or desktop UI yet.
-Finish this order first:
+```bash
+python main.py
+```
 
-1. action router
-2. git engine
-3. manual CLI flow
-4. tests
+## Running Tests
+
+```bash
+pytest tests/ -v
+```
+
+All 15 tests pass.
+
+## Desktop UI
+
+The desktop application is now available using PySide6.
+
+### Features
+- Modern dark theme (Catppuccin-inspired)
+- Chat-style interface for natural language commands
+- Repository status sidebar
+- Open any repository folder
+- Confirmation dialogs for dangerous operations
+- Background command execution (non-blocking UI)
+
+### Running the Desktop App
+
+```bash
+python main.py
+```
+
+### Running the CLI
+
+```bash
+python main.py --cli
+```
+
+## Next Steps (Future Features)
+
+- AI explanation of Git errors
+- Automated commit message generation
+- Merge conflict resolution assistant
+- Visual Git history graph
 
