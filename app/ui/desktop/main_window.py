@@ -84,18 +84,36 @@ class ChatBubble(QFrame):
         layout.setSpacing(0)
 
         # Message content
-        self.message = QLabel()
-        self.message.setText(text)
+        self.message = QLabel(text)
         self.message.setWordWrap(True)
         self.message.setTextInteractionFlags(Qt.TextSelectableByMouse)
         self.message.setObjectName("messageText")
-        self.message.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
         layout.addWidget(self.message)
 
-        # Set size policy to expand horizontally but fit content
-        self.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Minimum)
-        self.setMinimumWidth(80)
-        self.setMaximumWidth(550)
+        # Calculate width based on text content
+        font_metrics = self.message.fontMetrics()
+        text_width = font_metrics.horizontalAdvance(text) + 40  # padding
+
+        # Check if text has newlines (multiline)
+        if '\n' in text:
+            # For multiline, find the longest line
+            lines = text.split('\n')
+            max_line_width = max(font_metrics.horizontalAdvance(line) for line in lines) + 40
+            text_width = max_line_width
+
+        # Clamp between min and max
+        bubble_width = max(60, min(text_width, 500))
+
+        # If text needs to wrap, use larger width
+        if text_width > 500:
+            bubble_width = 500
+            self.message.setWordWrap(True)
+        else:
+            self.message.setWordWrap(False)
+            self.message.setFixedWidth(bubble_width - 28)
+
+        self.setFixedWidth(bubble_width)
+        self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Minimum)
 
         # Add subtle shadow
         shadow = QGraphicsDropShadowEffect()
