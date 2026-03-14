@@ -80,28 +80,22 @@ class ChatBubble(QFrame):
         self.setObjectName("userBubble" if is_user else "assistantBubble")
 
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(12, 8, 12, 8)
+        layout.setContentsMargins(14, 10, 14, 10)
         layout.setSpacing(0)
 
-        # Message content - use QLabel for simple, compact display
-        message = QLabel(text)
-        message.setWordWrap(True)
-        message.setTextInteractionFlags(Qt.TextSelectableByMouse)
-        message.setObjectName("messageText")
-        message.setTextFormat(Qt.PlainText)
-        layout.addWidget(message)
+        # Message content
+        self.message = QLabel()
+        self.message.setText(text)
+        self.message.setWordWrap(True)
+        self.message.setTextInteractionFlags(Qt.TextSelectableByMouse)
+        self.message.setObjectName("messageText")
+        self.message.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
+        layout.addWidget(self.message)
 
-        # Dynamic width based on text length
-        text_len = len(text)
-        if text_len < 30:
-            max_width = min(250, text_len * 10 + 50)
-        elif text_len < 100:
-            max_width = 350
-        else:
-            max_width = 480
-
-        self.setMaximumWidth(max_width)
-        self.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Minimum)
+        # Set size policy to expand horizontally but fit content
+        self.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Minimum)
+        self.setMinimumWidth(80)
+        self.setMaximumWidth(550)
 
         # Add subtle shadow
         shadow = QGraphicsDropShadowEffect()
@@ -136,16 +130,22 @@ class ChatArea(QScrollArea):
     def add_message(self, text: str, is_user: bool) -> None:
         bubble = ChatBubble(text, is_user)
 
-        # Insert before the stretch
-        self.layout.insertWidget(self.layout.count() - 1, bubble)
+        # Create a container for proper alignment
+        container = QWidget()
+        container_layout = QHBoxLayout(container)
+        container_layout.setContentsMargins(0, 0, 0, 0)
 
-        # Align user messages right, assistant left
         if is_user:
-            self.layout.setAlignment(bubble, Qt.AlignRight)
+            container_layout.addStretch()
+            container_layout.addWidget(bubble)
         else:
-            self.layout.setAlignment(bubble, Qt.AlignLeft)
+            container_layout.addWidget(bubble)
+            container_layout.addStretch()
 
-        # Scroll to bottom with slight delay for smooth effect
+        # Insert before the stretch
+        self.layout.insertWidget(self.layout.count() - 1, container)
+
+        # Scroll to bottom
         self.verticalScrollBar().setValue(self.verticalScrollBar().maximum())
 
     def clear_messages(self) -> None:
