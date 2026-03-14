@@ -1,70 +1,132 @@
-# AI Git Desktop
+# Git Assistant
 
-Boilerplate Python costruito a partire da [ai_git_desktop_codex_spec.md](/Volumes/SSD1/Personal%20Projects/GitAI/ai_git_desktop_codex_spec.md).
+A modern desktop application that lets you manage Git and GitHub using natural language. No more memorizing commands - just tell it what you want to do.
 
-Obiettivo: imparare a costruire il progetto per milestone, non riempire subito tutto di codice.
+![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)
+![License](https://img.shields.io/badge/License-MIT-green.svg)
+![Platform](https://img.shields.io/badge/Platform-macOS%20%7C%20Linux%20%7C%20Windows-lightgrey.svg)
 
-## Stack
+## Features
 
-- Python
-- CLI prima, desktop UI dopo
-- `GitPython` o `subprocess + git` per Git locale
-- `PyGithub` per GitHub API
-- `PySide6` piu' avanti, quando il core funziona
+- **Natural Language Commands** - Type commands like "commit my changes" or "create a branch called feature-login"
+- **AI-Powered Understanding** - Uses OpenAI or Anthropic to understand flexible, conversational input
+- **Smart Commit Messages** - Automatically generates meaningful commit messages by analyzing your changes
+- **Modern Desktop UI** - Clean, GitHub-inspired dark theme with chat interface
+- **CLI Mode** - Full functionality available from the terminal
+- **Safe by Default** - Dangerous operations (delete branch, force push) require confirmation
 
-## Struttura
+## Quick Start
 
-```text
-app/
-  controllers/
-  ui/
-core/
-  action_router/
-  command_parser/
-  git_engine/
-  github_service/
-tests/
-main.py
-requirements.txt
+### Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/git-assistant.git
+cd git-assistant
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Optional: Install desktop UI dependencies
+pip install PySide6
 ```
 
-## Ordine Di Lavoro
+### Configuration
 
-1. Completa il parser in [core/command_parser/parse_command.py](/Volumes/SSD1/Personal%20Projects/GitAI/core/command_parser/parse_command.py).
-2. Collega il parser al router in [core/action_router/route_action.py](/Volumes/SSD1/Personal%20Projects/GitAI/core/action_router/route_action.py).
-3. Implementa il service Git in [core/git_engine/service.py](/Volumes/SSD1/Personal%20Projects/GitAI/core/git_engine/service.py).
-4. Solo dopo passa a GitHub e all'interfaccia grafica.
+Create a `.env` file in the project root:
 
-Questo ordine ti costringe a capire bene il dominio prima dell'UI.
+```bash
+# Required for GitHub operations
+GITHUB_TOKEN=your_github_token
 
-## Prima Milestone
+# Optional: Enable AI features (at least one recommended)
+OPENAI_API_KEY=your_openai_key
+# or
+ANTHROPIC_API_KEY=your_anthropic_key
+```
 
-Supporta solo questi prompt:
+### Run
 
-- `commit my changes`
-- `push my project`
-- `create a branch called feature-login`
+```bash
+# Desktop app
+python main.py
 
-Se questi tre casi funzionano end-to-end, la base del progetto e' sana.
+# CLI mode
+python main.py --cli
+```
 
-## Come Studiare Il Progetto
+## Supported Commands
 
-In ogni file trovi `TODO` o `EXERCISE`.
-Usali come check-point.
+| Action | Example Commands |
+|--------|------------------|
+| **Commit** | `commit`, `commit my changes`, `save my work` |
+| **Commit with message** | `commit with message "fix login bug"` |
+| **Smart Commit** | `smart commit`, `ai commit` (generates message automatically) |
+| **Push** | `push`, `push my changes`, `upload to remote` |
+| **Pull** | `pull`, `get latest`, `fetch changes` |
+| **Create Branch** | `create branch feature-x`, `make a new branch called hotfix` |
+| **Switch Branch** | `switch to main`, `checkout develop` |
+| **Merge** | `merge feature into main`, `merge develop` |
+| **Stash** | `stash`, `stash my changes`, `save for later` |
+| **Unstash** | `stash pop`, `unstash`, `apply stash` |
+| **Status** | `status`, `show status` |
+| **Diff** | `diff`, `show changes`, `what changed` |
+| **Clone** | `clone user/repo`, `clone https://github.com/user/repo` |
+| **Init** | `init`, `initialize` |
+| **Create Repo** | `create repo my-app`, `create private repo secret-project` |
+| **Open PR** | `open pr from feature to main` |
+| **Delete Branch** | `delete branch old-feature` (requires confirmation) |
+| **Force Push** | `force push` (requires confirmation) |
 
-1. Non scrivere tutto in una volta.
-2. Implementa una feature piccola per intero.
-3. Verifica a mano prima di passare allo step successivo.
+## AI Features
 
-## Primo Esercizio
+When an AI API key is configured:
 
-Inizia da [core/command_parser/models.py](/Volumes/SSD1/Personal%20Projects/GitAI/core/command_parser/models.py) e [core/command_parser/parse_command.py](/Volumes/SSD1/Personal%20Projects/GitAI/core/command_parser/parse_command.py).
+1. **Flexible Input** - Say things like "can you please make me a new branch for the login feature" and it just works
+2. **Smart Commits** - Analyzes your diff and writes descriptive commit messages
+3. **Context Understanding** - Interprets variations and conversational phrasing
 
-Prima devi capire:
+Without an API key, the app uses pattern matching which supports all commands in standard formats.
 
-- che forma ha un'azione
-- quando il parser deve restituire `action=None`
-- quali dati servono per `create_branch`
+## Project Structure
 
-Poi implementi solo il riconoscimento dei tre prompt della prima milestone.
+```
+git-assistant/
+├── app/
+│   ├── controllers/      # Business logic
+│   └── ui/
+│       ├── cli.py        # Command-line interface
+│       └── desktop/      # PySide6 desktop app
+├── core/
+│   ├── ai_service/       # OpenAI/Anthropic integration
+│   ├── command_parser/   # Natural language parsing
+│   ├── git_engine/       # Git operations (GitPython)
+│   ├── github_service/   # GitHub API (PyGithub)
+│   └── action_router/    # Command routing
+├── tests/                # Test suite
+├── main.py               # Entry point
+└── requirements.txt
+```
 
+## Requirements
+
+- Python 3.11+
+- GitPython
+- PyGithub
+- PySide6 (optional, for desktop UI)
+- python-dotenv
+- certifi
+
+## Running Tests
+
+```bash
+pytest tests/ -v
+```
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## License
+
+MIT License - see LICENSE file for details.
