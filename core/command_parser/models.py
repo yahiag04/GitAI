@@ -6,12 +6,15 @@ ActionName = Literal[
     "create_repository",
     "commit_changes",
     "push_changes",
+    "pull_changes",
     "create_branch",
     "checkout_branch",
     "delete_branch",
     "open_pull_request",
     "force_push",
     "show_status",
+    "init_repo",
+    "clone_repo",
 ]
 
 
@@ -25,6 +28,7 @@ class CommandAction:
     source_branch: Optional[str] = None
     target_branch: Optional[str] = None
     title: Optional[str] = None
+    clone_url: Optional[str] = None
 
 
 @dataclass(slots=True)

@@ -161,6 +161,42 @@ class GitEngine:
 
         return "\n".join(status_lines)
 
+    def pull_changes(self, remote_name: str = "origin") -> str:
+        """Pull changes from remote."""
+        repo = self._get_repo()
+
+        if remote_name not in [r.name for r in repo.remotes]:
+            return f"No remote named '{remote_name}' configured."
+
+        remote = repo.remote(remote_name)
+        current_branch = repo.active_branch.name
+
+        # Pull from remote
+        pull_info = remote.pull(current_branch)
+
+        if pull_info:
+            return f"Pulled latest changes from {remote_name}/{current_branch}."
+        return f"Already up to date."
+
+    def clone_repo(self, url: str, target_dir: Path | None = None) -> str:
+        """Clone a repository from URL."""
+        # Extract repo name from URL for default directory
+        repo_name = url.rstrip("/").split("/")[-1]
+        if repo_name.endswith(".git"):
+            repo_name = repo_name[:-4]
+
+        if target_dir is None:
+            target_dir = self.working_directory / repo_name
+
+        if target_dir.exists():
+            return f"Directory '{target_dir}' already exists."
+
+        # Clone the repository
+        self._repo = Repo.clone_from(url, target_dir)
+        self.working_directory = target_dir
+
+        return f"Cloned {url} into {target_dir}"
+
 
 def create_git_engine(working_directory: Path | None = None) -> GitEngine:
     return GitEngine(working_directory=working_directory or Path.cwd())

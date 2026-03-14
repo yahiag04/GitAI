@@ -10,10 +10,12 @@ from PySide6.QtWidgets import (
     QLabel,
     QFrame,
     QFileDialog,
-    QMessageBox,
+    QGraphicsDropShadowEffect,
+    QSizePolicy,
+    QSpacerItem,
 )
-from PySide6.QtCore import Qt, Signal, QThread
-from PySide6.QtGui import QFont, QKeyEvent
+from PySide6.QtCore import Qt, Signal, QThread, QPropertyAnimation, QEasingCurve, Property, QSize
+from PySide6.QtGui import QFont, QKeyEvent, QColor, QIcon
 
 from app.controllers.assistant_controller import handle_user_prompt, handle_confirmed_action
 from core.action_router.route_action import RouteDependencies
@@ -52,37 +54,75 @@ class CommandWorker(QThread):
             self.error.emit(str(e))
 
 
+class AnimatedFrame(QFrame):
+    """Frame with fade-in animation."""
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._opacity = 0.0
+
+    def fadeIn(self):
+        self.anim = QPropertyAnimation(self, b"windowOpacity")
+        self.anim.setDuration(200)
+        self.anim.setStartValue(0.0)
+        self.anim.setEndValue(1.0)
+        self.anim.setEasingCurve(QEasingCurve.OutCubic)
+        self.anim.start()
+
+
 class ChatBubble(QFrame):
-    """A chat message bubble."""
+    """Modern chat message bubble."""
 
     def __init__(self, text: str, is_user: bool, parent=None):
         super().__init__(parent)
+        self.is_user = is_user
         self.setObjectName("userBubble" if is_user else "assistantBubble")
 
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(12, 8, 12, 8)
+        layout.setContentsMargins(16, 12, 16, 12)
+        layout.setSpacing(4)
 
-        label = QLabel(text)
-        label.setWordWrap(True)
-        label.setTextInteractionFlags(Qt.TextSelectableByMouse)
-        layout.addWidget(label)
+        # Sender label
+        sender = QLabel("You" if is_user else "Git Assistant")
+        sender.setObjectName("senderLabel")
+        layout.addWidget(sender)
 
-        self.setMaximumWidth(500)
+        # Message content
+        message = QLabel(text)
+        message.setWordWrap(True)
+        message.setTextInteractionFlags(Qt.TextSelectableByMouse)
+        message.setObjectName("messageText")
+        layout.addWidget(message)
+
+        self.setMaximumWidth(600)
+        self.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Minimum)
+
+        # Add subtle shadow
+        shadow = QGraphicsDropShadowEffect()
+        shadow.setBlurRadius(20)
+        shadow.setXOffset(0)
+        shadow.setYOffset(4)
+        shadow.setColor(QColor(0, 0, 0, 40))
+        self.setGraphicsEffect(shadow)
 
 
 class ChatArea(QScrollArea):
-    """Scrollable chat area containing message bubbles."""
+    """Scrollable chat area with modern styling."""
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWidgetResizable(True)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
         self.setObjectName("chatArea")
+        self.setFrameShape(QFrame.NoFrame)
 
         self.container = QWidget()
+        self.container.setObjectName("chatContainer")
         self.layout = QVBoxLayout(self.container)
         self.layout.setAlignment(Qt.AlignTop)
-        self.layout.setSpacing(10)
+        self.layout.setSpacing(16)
+        self.layout.setContentsMargins(24, 24, 24, 24)
         self.layout.addStretch()
 
         self.setWidget(self.container)
@@ -99,7 +139,7 @@ class ChatArea(QScrollArea):
         else:
             self.layout.setAlignment(bubble, Qt.AlignLeft)
 
-        # Scroll to bottom
+        # Scroll to bottom with slight delay for smooth effect
         self.verticalScrollBar().setValue(self.verticalScrollBar().maximum())
 
     def clear_messages(self) -> None:
@@ -109,55 +149,128 @@ class ChatArea(QScrollArea):
                 item.widget().deleteLater()
 
 
+class InfoCard(QFrame):
+    """Modern info card for sidebar."""
+
+    def __init__(self, icon: str, title: str, value: str = "", parent=None):
+        super().__init__(parent)
+        self.setObjectName("infoCard")
+
+        layout = QHBoxLayout(self)
+        layout.setContentsMargins(16, 14, 16, 14)
+        layout.setSpacing(12)
+
+        # Icon
+        icon_label = QLabel(icon)
+        icon_label.setObjectName("cardIcon")
+        icon_label.setFixedSize(32, 32)
+        icon_label.setAlignment(Qt.AlignCenter)
+        layout.addWidget(icon_label)
+
+        # Text container
+        text_layout = QVBoxLayout()
+        text_layout.setSpacing(2)
+
+        title_label = QLabel(title)
+        title_label.setObjectName("cardTitle")
+        text_layout.addWidget(title_label)
+
+        self.value_label = QLabel(value)
+        self.value_label.setObjectName("cardValue")
+        self.value_label.setWordWrap(True)
+        text_layout.addWidget(self.value_label)
+
+        layout.addLayout(text_layout, 1)
+
+    def set_value(self, value: str):
+        self.value_label.setText(value)
+
+
 class StatusPanel(QFrame):
-    """Side panel showing repository status."""
+    """Modern sidebar with repository status."""
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setObjectName("statusPanel")
-        self.setFixedWidth(250)
+        self.setFixedWidth(280)
 
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(15, 15, 15, 15)
+        layout.setContentsMargins(20, 24, 20, 24)
+        layout.setSpacing(16)
 
-        # Title
-        title = QLabel("Repository Status")
-        title.setObjectName("panelTitle")
-        layout.addWidget(title)
+        # Logo/Title
+        header = QLabel("Git Assistant")
+        header.setObjectName("sidebarTitle")
+        layout.addWidget(header)
 
-        # Status content
-        self.status_label = QLabel("No repository selected")
-        self.status_label.setWordWrap(True)
-        self.status_label.setObjectName("statusContent")
-        layout.addWidget(self.status_label)
+        subtitle = QLabel("Natural language Git")
+        subtitle.setObjectName("sidebarSubtitle")
+        layout.addWidget(subtitle)
 
-        # Path label
-        self.path_label = QLabel("")
-        self.path_label.setWordWrap(True)
-        self.path_label.setObjectName("pathLabel")
-        layout.addWidget(self.path_label)
+        layout.addSpacing(8)
+
+        # Divider
+        divider = QFrame()
+        divider.setObjectName("divider")
+        divider.setFixedHeight(1)
+        layout.addWidget(divider)
+
+        layout.addSpacing(8)
+
+        # Info cards
+        self.branch_card = InfoCard("", "Branch", "main")
+        layout.addWidget(self.branch_card)
+
+        self.status_card = InfoCard("", "Status", "Clean")
+        layout.addWidget(self.status_card)
+
+        self.path_card = InfoCard("", "Repository", "No repo selected")
+        layout.addWidget(self.path_card)
 
         layout.addStretch()
 
+        # Quick actions
+        actions_label = QLabel("Quick Actions")
+        actions_label.setObjectName("actionsLabel")
+        layout.addWidget(actions_label)
+
+        # Action buttons
+        self.commit_btn = QPushButton("  Commit Changes")
+        self.commit_btn.setObjectName("actionButton")
+        layout.addWidget(self.commit_btn)
+
+        self.push_btn = QPushButton("  Push to Remote")
+        self.push_btn.setObjectName("actionButton")
+        layout.addWidget(self.push_btn)
+
+        self.pull_btn = QPushButton("  Pull Latest")
+        self.pull_btn.setObjectName("actionButton")
+        layout.addWidget(self.pull_btn)
+
+        layout.addSpacing(8)
+
         # Open folder button
-        self.open_btn = QPushButton("Open Repository")
-        self.open_btn.setObjectName("openButton")
+        self.open_btn = QPushButton("  Open Repository")
+        self.open_btn.setObjectName("primaryButton")
         layout.addWidget(self.open_btn)
 
-    def update_status(self, status: str, path: str = "") -> None:
-        self.status_label.setText(status)
-        if path:
-            self.path_label.setText(f"Path: {path}")
+    def update_status(self, branch: str, status: str, path: str) -> None:
+        self.branch_card.set_value(branch)
+        self.status_card.set_value(status)
+        # Truncate path if too long
+        if len(path) > 30:
+            path = "..." + path[-27:]
+        self.path_card.set_value(path)
 
 
 class CommandInput(QLineEdit):
-    """Command input field with Enter key handling."""
+    """Modern command input field."""
 
     submitted = Signal(str)
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setPlaceholderText("Type a Git command in plain English...")
+        self.setPlaceholderText("Type a command... (e.g., 'commit my changes')")
         self.setObjectName("commandInput")
 
     def keyPressEvent(self, event: QKeyEvent) -> None:
@@ -169,12 +282,13 @@ class CommandInput(QLineEdit):
 
 
 class MainWindow(QMainWindow):
-    """Main application window."""
+    """Modern main application window."""
 
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("AI Git Desktop")
-        self.setMinimumSize(900, 600)
+        self.setWindowTitle("Git Assistant")
+        self.setMinimumSize(1100, 700)
+        self.resize(1200, 800)
 
         # Initialize services
         self.working_directory = Path.cwd()
@@ -205,154 +319,331 @@ class MainWindow(QMainWindow):
         self.status_panel = StatusPanel()
         main_layout.addWidget(self.status_panel)
 
-        # Chat area (center/right)
+        # Main chat area (center/right)
         chat_container = QWidget()
+        chat_container.setObjectName("chatSection")
         chat_layout = QVBoxLayout(chat_container)
-        chat_layout.setContentsMargins(20, 20, 20, 20)
-        chat_layout.setSpacing(15)
+        chat_layout.setContentsMargins(0, 0, 0, 0)
+        chat_layout.setSpacing(0)
 
-        # Header
-        header = QLabel("AI Git Desktop")
-        header.setObjectName("header")
-        chat_layout.addWidget(header)
+        # Chat header
+        header_widget = QWidget()
+        header_widget.setObjectName("chatHeader")
+        header_widget.setFixedHeight(70)
+        header_layout = QHBoxLayout(header_widget)
+        header_layout.setContentsMargins(32, 0, 32, 0)
+
+        header_title = QLabel("Chat")
+        header_title.setObjectName("chatHeaderTitle")
+        header_layout.addWidget(header_title)
+
+        header_layout.addStretch()
+
+        clear_btn = QPushButton("Clear Chat")
+        clear_btn.setObjectName("clearButton")
+        clear_btn.clicked.connect(self._clear_chat)
+        header_layout.addWidget(clear_btn)
+
+        chat_layout.addWidget(header_widget)
 
         # Chat area
         self.chat_area = ChatArea()
-        chat_layout.addWidget(self.chat_area)
+        chat_layout.addWidget(self.chat_area, 1)
 
         # Input area
-        input_layout = QHBoxLayout()
+        input_widget = QWidget()
+        input_widget.setObjectName("inputArea")
+        input_widget.setFixedHeight(80)
+        input_layout = QHBoxLayout(input_widget)
+        input_layout.setContentsMargins(24, 16, 24, 16)
+        input_layout.setSpacing(12)
+
         self.command_input = CommandInput()
+        input_layout.addWidget(self.command_input, 1)
+
         self.send_btn = QPushButton("Send")
         self.send_btn.setObjectName("sendButton")
-        input_layout.addWidget(self.command_input)
+        self.send_btn.setFixedSize(100, 48)
         input_layout.addWidget(self.send_btn)
-        chat_layout.addLayout(input_layout)
+
+        chat_layout.addWidget(input_widget)
 
         main_layout.addWidget(chat_container, 1)
 
         # Welcome message
         self.chat_area.add_message(
-            "Welcome to AI Git Desktop!\n\n"
-            "You can manage Git using natural language.\n\n"
-            "Examples:\n"
-            "- commit my changes\n"
-            "- create a branch called feature-login\n"
-            "- push my project\n"
-            "- open a pull request from dev to main",
+            "Welcome! I can help you manage Git using natural language.\n\n"
+            "Try commands like:\n"
+            "  commit my changes\n"
+            "  push\n"
+            "  create branch feature-login\n"
+            "  status\n"
+            "  pull\n"
+            "  clone user/repo",
             is_user=False,
         )
 
     def _apply_styles(self) -> None:
         self.setStyleSheet("""
+            * {
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            }
+
             QMainWindow {
-                background-color: #1e1e2e;
+                background-color: #0d1117;
             }
 
-            #header {
-                font-size: 24px;
-                font-weight: bold;
-                color: #cdd6f4;
-                padding: 10px 0;
-            }
-
-            #chatArea {
-                background-color: #1e1e2e;
-                border: none;
-            }
-
-            #userBubble {
-                background-color: #89b4fa;
-                color: #1e1e2e;
-                border-radius: 12px;
-            }
-
-            #assistantBubble {
-                background-color: #313244;
-                color: #cdd6f4;
-                border-radius: 12px;
-            }
-
-            #commandInput {
-                background-color: #313244;
-                color: #cdd6f4;
-                border: 2px solid #45475a;
-                border-radius: 8px;
-                padding: 12px;
-                font-size: 14px;
-            }
-
-            #commandInput:focus {
-                border-color: #89b4fa;
-            }
-
-            #sendButton {
-                background-color: #89b4fa;
-                color: #1e1e2e;
-                border: none;
-                border-radius: 8px;
-                padding: 12px 24px;
-                font-size: 14px;
-                font-weight: bold;
-            }
-
-            #sendButton:hover {
-                background-color: #b4befe;
-            }
-
-            #sendButton:pressed {
-                background-color: #74c7ec;
-            }
-
+            /* Sidebar */
             #statusPanel {
-                background-color: #181825;
-                border-right: 1px solid #313244;
+                background-color: #161b22;
+                border-right: 1px solid #30363d;
             }
 
-            #panelTitle {
-                font-size: 16px;
-                font-weight: bold;
-                color: #cdd6f4;
-                padding-bottom: 10px;
+            #sidebarTitle {
+                font-size: 22px;
+                font-weight: 700;
+                color: #f0f6fc;
+                letter-spacing: -0.5px;
             }
 
-            #statusContent {
-                color: #a6adc8;
+            #sidebarSubtitle {
                 font-size: 13px;
+                color: #8b949e;
+                margin-top: -8px;
+            }
+
+            #divider {
+                background-color: #30363d;
+            }
+
+            /* Info Cards */
+            #infoCard {
+                background-color: #21262d;
+                border: 1px solid #30363d;
+                border-radius: 10px;
+            }
+
+            #infoCard:hover {
+                background-color: #262c36;
+                border-color: #3d444d;
+            }
+
+            #cardIcon {
+                font-size: 18px;
+                background-color: #30363d;
+                border-radius: 8px;
+                color: #8b949e;
+            }
+
+            #cardTitle {
+                font-size: 11px;
+                font-weight: 600;
+                color: #8b949e;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+
+            #cardValue {
+                font-size: 14px;
+                font-weight: 500;
+                color: #f0f6fc;
+            }
+
+            /* Action Buttons */
+            #actionsLabel {
+                font-size: 11px;
+                font-weight: 600;
+                color: #8b949e;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                margin-top: 8px;
+            }
+
+            #actionButton {
+                background-color: transparent;
+                border: 1px solid #30363d;
+                border-radius: 8px;
+                color: #c9d1d9;
+                padding: 10px 16px;
+                text-align: left;
+                font-size: 13px;
+            }
+
+            #actionButton:hover {
+                background-color: #21262d;
+                border-color: #3d444d;
+            }
+
+            #actionButton:pressed {
+                background-color: #30363d;
+            }
+
+            #primaryButton {
+                background-color: #238636;
+                border: none;
+                border-radius: 8px;
+                color: #ffffff;
+                padding: 12px 16px;
+                font-size: 14px;
+                font-weight: 600;
+            }
+
+            #primaryButton:hover {
+                background-color: #2ea043;
+            }
+
+            #primaryButton:pressed {
+                background-color: #238636;
+            }
+
+            /* Chat Section */
+            #chatSection {
+                background-color: #0d1117;
+            }
+
+            #chatHeader {
+                background-color: #161b22;
+                border-bottom: 1px solid #30363d;
+            }
+
+            #chatHeaderTitle {
+                font-size: 16px;
+                font-weight: 600;
+                color: #f0f6fc;
+            }
+
+            #clearButton {
+                background-color: transparent;
+                border: 1px solid #30363d;
+                border-radius: 6px;
+                color: #8b949e;
+                padding: 8px 16px;
+                font-size: 13px;
+            }
+
+            #clearButton:hover {
+                background-color: #21262d;
+                color: #c9d1d9;
+            }
+
+            /* Chat Area */
+            #chatArea {
+                background-color: #0d1117;
+                border: none;
+            }
+
+            #chatContainer {
+                background-color: #0d1117;
+            }
+
+            /* Chat Bubbles */
+            #userBubble {
+                background-color: #238636;
+                border-radius: 16px;
+                border-bottom-right-radius: 4px;
+            }
+
+            #userBubble #senderLabel {
+                font-size: 11px;
+                font-weight: 600;
+                color: rgba(255, 255, 255, 0.8);
+            }
+
+            #userBubble #messageText {
+                font-size: 14px;
+                color: #ffffff;
                 line-height: 1.5;
             }
 
-            #pathLabel {
-                color: #6c7086;
+            #assistantBubble {
+                background-color: #21262d;
+                border: 1px solid #30363d;
+                border-radius: 16px;
+                border-bottom-left-radius: 4px;
+            }
+
+            #assistantBubble #senderLabel {
                 font-size: 11px;
-                padding-top: 10px;
+                font-weight: 600;
+                color: #58a6ff;
             }
 
-            #openButton {
-                background-color: #45475a;
-                color: #cdd6f4;
+            #assistantBubble #messageText {
+                font-size: 14px;
+                color: #c9d1d9;
+                line-height: 1.5;
+            }
+
+            /* Input Area */
+            #inputArea {
+                background-color: #161b22;
+                border-top: 1px solid #30363d;
+            }
+
+            #commandInput {
+                background-color: #0d1117;
+                color: #c9d1d9;
+                border: 1px solid #30363d;
+                border-radius: 12px;
+                padding: 14px 18px;
+                font-size: 14px;
+                selection-background-color: #264f78;
+            }
+
+            #commandInput:focus {
+                border-color: #58a6ff;
+                background-color: #0d1117;
+            }
+
+            #commandInput::placeholder {
+                color: #6e7681;
+            }
+
+            #sendButton {
+                background-color: #238636;
+                color: #ffffff;
                 border: none;
-                border-radius: 6px;
-                padding: 10px;
-                font-size: 13px;
+                border-radius: 12px;
+                font-size: 14px;
+                font-weight: 600;
             }
 
-            #openButton:hover {
-                background-color: #585b70;
+            #sendButton:hover {
+                background-color: #2ea043;
             }
 
+            #sendButton:pressed {
+                background-color: #238636;
+            }
+
+            #sendButton:disabled {
+                background-color: #21262d;
+                color: #484f58;
+            }
+
+            /* Scrollbar */
             QScrollBar:vertical {
-                background-color: #1e1e2e;
+                background-color: transparent;
                 width: 8px;
+                margin: 4px 2px;
             }
 
             QScrollBar::handle:vertical {
-                background-color: #45475a;
+                background-color: #30363d;
                 border-radius: 4px;
+                min-height: 40px;
+            }
+
+            QScrollBar::handle:vertical:hover {
+                background-color: #484f58;
             }
 
             QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
                 height: 0;
+            }
+
+            QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
+                background: transparent;
             }
         """)
 
@@ -360,12 +651,18 @@ class MainWindow(QMainWindow):
         self.command_input.submitted.connect(self._handle_command)
         self.send_btn.clicked.connect(self._on_send_clicked)
         self.status_panel.open_btn.clicked.connect(self._open_repository)
+        self.status_panel.commit_btn.clicked.connect(lambda: self._quick_command("commit"))
+        self.status_panel.push_btn.clicked.connect(lambda: self._quick_command("push"))
+        self.status_panel.pull_btn.clicked.connect(lambda: self._quick_command("pull"))
 
     def _on_send_clicked(self) -> None:
         text = self.command_input.text().strip()
         if text:
             self._handle_command(text)
             self.command_input.clear()
+
+    def _quick_command(self, cmd: str) -> None:
+        self._handle_command(cmd)
 
     def _handle_command(self, prompt: str) -> None:
         # Add user message
@@ -432,12 +729,26 @@ class MainWindow(QMainWindow):
     def _update_status(self) -> None:
         try:
             status = self.git_engine.get_status()
-            self.status_panel.update_status(status, str(self.working_directory))
+            lines = status.split("\n")
+            branch = lines[0].replace("On branch ", "") if lines else "unknown"
+
+            # Determine status summary
+            if "Nothing to commit" in status:
+                status_text = "Clean"
+            else:
+                changes = []
+                for line in lines[1:]:
+                    if line.startswith("Staged:"):
+                        changes.append("staged")
+                    if line.startswith("Modified:"):
+                        changes.append("modified")
+                    if line.startswith("Untracked:"):
+                        changes.append("untracked")
+                status_text = ", ".join(changes).title() if changes else "Clean"
+
+            self.status_panel.update_status(branch, status_text, str(self.working_directory))
         except ValueError:
-            self.status_panel.update_status(
-                "Not a Git repository",
-                str(self.working_directory),
-            )
+            self.status_panel.update_status("—", "No Git repo", str(self.working_directory))
 
     def _open_repository(self) -> None:
         directory = QFileDialog.getExistingDirectory(
@@ -457,3 +768,10 @@ class MainWindow(QMainWindow):
                 f"Opened repository: {directory}",
                 is_user=False,
             )
+
+    def _clear_chat(self) -> None:
+        self.chat_area.clear_messages()
+        self.chat_area.add_message(
+            "Chat cleared. How can I help you?",
+            is_user=False,
+        )

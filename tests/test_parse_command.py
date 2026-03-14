@@ -122,3 +122,47 @@ def test_status() -> None:
     result = parse_command("status")
     assert result.action is not None
     assert result.action.action == "show_status"
+
+
+def test_pull() -> None:
+    result = parse_command("pull")
+    assert result.action is not None
+    assert result.action.action == "pull_changes"
+
+
+def test_pull_changes() -> None:
+    result = parse_command("pull changes")
+    assert result.action is not None
+    assert result.action.action == "pull_changes"
+
+
+def test_get_latest() -> None:
+    result = parse_command("get latest")
+    assert result.action is not None
+    assert result.action.action == "pull_changes"
+
+
+def test_init() -> None:
+    result = parse_command("init")
+    assert result.action is not None
+    assert result.action.action == "init_repo"
+
+
+def test_initialize() -> None:
+    result = parse_command("initialize")
+    assert result.action is not None
+    assert result.action.action == "init_repo"
+
+
+def test_clone_full_url() -> None:
+    result = parse_command("clone https://github.com/user/repo")
+    assert result.action is not None
+    assert result.action.action == "clone_repo"
+    assert result.action.clone_url == "https://github.com/user/repo"
+
+
+def test_clone_shorthand() -> None:
+    result = parse_command("clone user/repo")
+    assert result.action is not None
+    assert result.action.action == "clone_repo"
+    assert result.action.clone_url == "https://github.com/user/repo"

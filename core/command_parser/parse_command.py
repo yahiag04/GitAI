@@ -133,6 +133,41 @@ def parse_command(prompt: str) -> ParseCommandResult:
             reasoning="Showing repository status.",
         )
 
+    # === PULL ===
+    # "pull", "pull changes", "pull from origin", "get latest"
+    if re.match(r"^(pull|get\s+latest|fetch\s+changes?)(\s+(changes?|from\s+\w+))?$", normalized):
+        return ParseCommandResult(
+            action=CommandAction(action="pull_changes"),
+            requires_confirmation=False,
+            reasoning="Pulling latest changes from remote.",
+        )
+
+    # === INIT ===
+    # "init", "initialize", "start project", "create git repo here"
+    if re.match(r"^(init|initialize|start\s+project|create\s+git\s+repo(\s+here)?)$", normalized):
+        return ParseCommandResult(
+            action=CommandAction(action="init_repo"),
+            requires_confirmation=False,
+            reasoning="Initializing a new Git repository.",
+        )
+
+    # === CLONE ===
+    # "clone https://github.com/user/repo", "clone user/repo"
+    clone_match = re.match(
+        r"^clone\s+(https?://[^\s]+|git@[^\s]+|[a-z0-9_-]+/[a-z0-9_.-]+)$",
+        normalized,
+    )
+    if clone_match:
+        url = clone_match.group(1)
+        # Convert shorthand "user/repo" to full GitHub URL
+        if not url.startswith(("http", "git@")):
+            url = f"https://github.com/{url}"
+        return ParseCommandResult(
+            action=CommandAction(action="clone_repo", clone_url=url),
+            requires_confirmation=False,
+            reasoning=f"Cloning repository from {url}.",
+        )
+
     # === NOT RECOGNIZED ===
     return ParseCommandResult(
         action=None,

@@ -49,6 +49,17 @@ def route_action(result: ParseCommandResult, dependencies: RouteDependencies) ->
         if action.action == "show_status":
             return dependencies.git_engine.get_status()
 
+        if action.action == "pull_changes":
+            return dependencies.git_engine.pull_changes()
+
+        if action.action == "init_repo":
+            return dependencies.git_engine.init_repo()
+
+        if action.action == "clone_repo":
+            if action.clone_url is None:
+                return "Error: Repository URL is required."
+            return dependencies.git_engine.clone_repo(action.clone_url)
+
         if action.action == "create_repository":
             if action.repository_name is None:
                 return "Error: Repository name is required."
