@@ -18,6 +18,7 @@ dist
 # Dev notes
 PROGRESS.md
 ai_git_desktop_codex_spec.md
+ai_git_desktop_codex_spec.md
 
 # Package build
 *.egg-info/
