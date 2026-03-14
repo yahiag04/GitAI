@@ -72,7 +72,7 @@ class AnimatedFrame(QFrame):
 
 
 class ChatBubble(QFrame):
-    """Modern chat message bubble."""
+    """Modern chat message bubble with dynamic sizing."""
 
     def __init__(self, text: str, is_user: bool, parent=None):
         super().__init__(parent)
@@ -80,42 +80,35 @@ class ChatBubble(QFrame):
         self.setObjectName("userBubble" if is_user else "assistantBubble")
 
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(16, 12, 16, 12)
-        layout.setSpacing(4)
+        layout.setContentsMargins(12, 8, 12, 8)
+        layout.setSpacing(0)
 
-        # Sender label
-        sender = QLabel("You" if is_user else "Git Assistant")
-        sender.setObjectName("senderLabel")
-        layout.addWidget(sender)
-
-        # Message content - use QTextBrowser for better text handling
-        message = QTextBrowser()
-        message.setPlainText(text)
-        message.setReadOnly(True)
-        message.setOpenExternalLinks(False)
+        # Message content - use QLabel for simple, compact display
+        message = QLabel(text)
+        message.setWordWrap(True)
+        message.setTextInteractionFlags(Qt.TextSelectableByMouse)
         message.setObjectName("messageText")
-        message.setFrameShape(QFrame.NoFrame)
-        message.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        message.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-
-        # Calculate height based on content
-        message.document().setTextWidth(450)
-        doc_height = message.document().size().height()
-        message.setFixedHeight(int(doc_height) + 10)
-
+        message.setTextFormat(Qt.PlainText)
         layout.addWidget(message)
 
-        # Let the bubble size naturally based on content
-        self.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Minimum)
-        self.setMinimumWidth(150)
-        self.setMaximumWidth(500)
+        # Dynamic width based on text length
+        text_len = len(text)
+        if text_len < 30:
+            max_width = min(250, text_len * 10 + 50)
+        elif text_len < 100:
+            max_width = 350
+        else:
+            max_width = 480
+
+        self.setMaximumWidth(max_width)
+        self.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Minimum)
 
         # Add subtle shadow
         shadow = QGraphicsDropShadowEffect()
-        shadow.setBlurRadius(20)
+        shadow.setBlurRadius(15)
         shadow.setXOffset(0)
-        shadow.setYOffset(4)
-        shadow.setColor(QColor(0, 0, 0, 40))
+        shadow.setYOffset(2)
+        shadow.setColor(QColor(0, 0, 0, 30))
         self.setGraphicsEffect(shadow)
 
 
@@ -545,45 +538,27 @@ class MainWindow(QMainWindow):
             /* Chat Bubbles */
             #userBubble {
                 background-color: #238636;
-                border-radius: 16px;
+                border-radius: 14px;
                 border-bottom-right-radius: 4px;
-            }
-
-            #userBubble #senderLabel {
-                font-size: 11px;
-                font-weight: 600;
-                color: rgba(255, 255, 255, 0.8);
             }
 
             #userBubble #messageText {
                 font-size: 14px;
                 color: #ffffff;
                 background-color: transparent;
-                border: none;
-                padding: 0px;
-                margin: 0px;
             }
 
             #assistantBubble {
                 background-color: #21262d;
                 border: 1px solid #30363d;
-                border-radius: 16px;
+                border-radius: 14px;
                 border-bottom-left-radius: 4px;
-            }
-
-            #assistantBubble #senderLabel {
-                font-size: 11px;
-                font-weight: 600;
-                color: #58a6ff;
             }
 
             #assistantBubble #messageText {
                 font-size: 14px;
                 color: #c9d1d9;
                 background-color: transparent;
-                border: none;
-                padding: 0px;
-                margin: 0px;
             }
 
             /* Input Area */
