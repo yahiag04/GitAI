@@ -169,31 +169,18 @@ class InfoCard(QFrame):
         super().__init__(parent)
         self.setObjectName("infoCard")
 
-        layout = QHBoxLayout(self)
-        layout.setContentsMargins(16, 14, 16, 14)
-        layout.setSpacing(12)
-
-        # Icon
-        icon_label = QLabel(icon)
-        icon_label.setObjectName("cardIcon")
-        icon_label.setFixedSize(32, 32)
-        icon_label.setAlignment(Qt.AlignCenter)
-        layout.addWidget(icon_label)
-
-        # Text container
-        text_layout = QVBoxLayout()
-        text_layout.setSpacing(2)
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(16, 12, 16, 12)
+        layout.setSpacing(2)
 
         title_label = QLabel(title)
         title_label.setObjectName("cardTitle")
-        text_layout.addWidget(title_label)
+        layout.addWidget(title_label)
 
         self.value_label = QLabel(value)
         self.value_label.setObjectName("cardValue")
         self.value_label.setWordWrap(True)
-        text_layout.addWidget(self.value_label)
-
-        layout.addLayout(text_layout, 1)
+        layout.addWidget(self.value_label)
 
     def set_value(self, value: str):
         self.value_label.setText(value)
@@ -215,10 +202,6 @@ class StatusPanel(QFrame):
         header = QLabel("Git Assistant")
         header.setObjectName("sidebarTitle")
         layout.addWidget(header)
-
-        subtitle = QLabel("Natural language Git")
-        subtitle.setObjectName("sidebarSubtitle")
-        layout.addWidget(subtitle)
 
         layout.addSpacing(8)
 
@@ -423,12 +406,6 @@ class MainWindow(QMainWindow):
                 letter-spacing: -0.5px;
             }
 
-            #sidebarSubtitle {
-                font-size: 13px;
-                color: #8b949e;
-                margin-top: -8px;
-            }
-
             #divider {
                 background-color: #30363d;
             }
@@ -443,13 +420,6 @@ class MainWindow(QMainWindow):
             #infoCard:hover {
                 background-color: #262c36;
                 border-color: #3d444d;
-            }
-
-            #cardIcon {
-                font-size: 18px;
-                background-color: #30363d;
-                border-radius: 8px;
-                color: #8b949e;
             }
 
             #cardTitle {
