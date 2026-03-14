@@ -87,15 +87,18 @@ class ChatBubble(QFrame):
         sender.setObjectName("senderLabel")
         layout.addWidget(sender)
 
-        # Message content
+        # Message content - use QLabel with proper sizing
         message = QLabel(text)
         message.setWordWrap(True)
         message.setTextInteractionFlags(Qt.TextSelectableByMouse)
         message.setObjectName("messageText")
+        message.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
+        message.setMinimumWidth(100)
         layout.addWidget(message)
 
-        self.setMaximumWidth(600)
-        self.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Minimum)
+        self.setMinimumWidth(150)
+        self.setMaximumWidth(550)
+        self.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Minimum)
 
         # Add subtle shadow
         shadow = QGraphicsDropShadowEffect()
@@ -576,6 +579,8 @@ class MainWindow(QMainWindow):
                 font-size: 14px;
                 color: #ffffff;
                 line-height: 1.5;
+                padding: 0px;
+                margin: 0px;
             }
 
             #assistantBubble {
@@ -595,6 +600,8 @@ class MainWindow(QMainWindow):
                 font-size: 14px;
                 color: #c9d1d9;
                 line-height: 1.5;
+                padding: 0px;
+                margin: 0px;
             }
 
             /* Input Area */
