@@ -11,12 +11,16 @@ ActionName = Literal[
     "create_branch",
     "checkout_branch",
     "delete_branch",
+    "merge_branch",
     "open_pull_request",
     "force_push",
     "show_status",
     "show_diff",
     "init_repo",
     "clone_repo",
+    "stash_changes",
+    "stash_pop",
+    "stash_list",
 ]
 
 

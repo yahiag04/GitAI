@@ -108,6 +108,73 @@ class GitEngine:
         repo.delete_head(branch_name, force=True)
         return f"Deleted branch '{branch_name}'."
 
+    def merge_branch(self, source_branch: str, target_branch: str | None = None) -> str:
+        """Merge source branch into target branch (or current branch)."""
+        repo = self._get_repo()
+
+        # If target not specified, merge into current branch
+        if target_branch is None:
+            target_branch = repo.active_branch.name
+
+        # Check source branch exists
+        if source_branch not in [b.name for b in repo.branches]:
+            return f"Branch '{source_branch}' does not exist."
+
+        # Checkout target branch if not current
+        current = repo.active_branch.name
+        if current != target_branch:
+            if target_branch not in [b.name for b in repo.branches]:
+                return f"Branch '{target_branch}' does not exist."
+            repo.heads[target_branch].checkout()
+
+        try:
+            # Perform merge
+            repo.git.merge(source_branch)
+            return f"Merged '{source_branch}' into '{target_branch}'."
+        except Exception as e:
+            if "CONFLICT" in str(e) or "conflict" in str(e).lower():
+                return f"Merge conflict! Resolve conflicts manually and commit."
+            return f"Merge failed: {e}"
+
+    def stash_changes(self, message: str | None = None) -> str:
+        """Stash current changes."""
+        repo = self._get_repo()
+
+        # Check if there are changes to stash
+        if not repo.is_dirty(untracked_files=True):
+            return "No changes to stash."
+
+        if message:
+            repo.git.stash("push", "-m", message)
+            return f"Stashed changes: {message}"
+        else:
+            repo.git.stash("push")
+            return "Stashed changes."
+
+    def stash_pop(self) -> str:
+        """Pop the most recent stash."""
+        repo = self._get_repo()
+
+        try:
+            repo.git.stash("pop")
+            return "Applied and removed latest stash."
+        except Exception as e:
+            if "No stash" in str(e):
+                return "No stash entries found."
+            return f"Failed to pop stash: {e}"
+
+    def stash_list(self) -> str:
+        """List all stashes."""
+        repo = self._get_repo()
+
+        try:
+            stashes = repo.git.stash("list")
+            if not stashes:
+                return "No stashes found."
+            return stashes
+        except Exception:
+            return "No stashes found."
+
     def force_push(self, remote_name: str = "origin") -> str:
         """Force push the current branch to remote."""
         repo = self._get_repo()

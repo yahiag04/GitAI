@@ -70,6 +70,23 @@ def route_action(result: ParseCommandResult, dependencies: RouteDependencies) ->
                 return "Error: Branch name is required."
             return dependencies.git_engine.delete_branch(action.branch_name)
 
+        if action.action == "merge_branch":
+            if action.source_branch is None:
+                return "Error: Source branch is required."
+            return dependencies.git_engine.merge_branch(
+                action.source_branch,
+                action.target_branch,
+            )
+
+        if action.action == "stash_changes":
+            return dependencies.git_engine.stash_changes()
+
+        if action.action == "stash_pop":
+            return dependencies.git_engine.stash_pop()
+
+        if action.action == "stash_list":
+            return dependencies.git_engine.stash_list()
+
         if action.action == "force_push":
             return dependencies.git_engine.force_push()
 
