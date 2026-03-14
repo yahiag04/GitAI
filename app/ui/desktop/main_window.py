@@ -235,6 +235,10 @@ class StatusPanel(QFrame):
         layout.addWidget(actions_label)
 
         # Action buttons
+        self.smart_commit_btn = QPushButton("  Smart Commit (AI)")
+        self.smart_commit_btn.setObjectName("aiButton")
+        layout.addWidget(self.smart_commit_btn)
+
         self.commit_btn = QPushButton("  Commit Changes")
         self.commit_btn.setObjectName("actionButton")
         layout.addWidget(self.commit_btn)
@@ -478,6 +482,25 @@ class MainWindow(QMainWindow):
                 background-color: #30363d;
             }
 
+            #aiButton {
+                background-color: #1f6feb;
+                border: none;
+                border-radius: 8px;
+                color: #ffffff;
+                padding: 10px 16px;
+                text-align: left;
+                font-size: 13px;
+                font-weight: 600;
+            }
+
+            #aiButton:hover {
+                background-color: #388bfd;
+            }
+
+            #aiButton:pressed {
+                background-color: #1f6feb;
+            }
+
             #primaryButton {
                 background-color: #238636;
                 border: none;
@@ -651,6 +674,7 @@ class MainWindow(QMainWindow):
         self.command_input.submitted.connect(self._handle_command)
         self.send_btn.clicked.connect(self._on_send_clicked)
         self.status_panel.open_btn.clicked.connect(self._open_repository)
+        self.status_panel.smart_commit_btn.clicked.connect(lambda: self._quick_command("smart commit"))
         self.status_panel.commit_btn.clicked.connect(lambda: self._quick_command("commit"))
         self.status_panel.push_btn.clicked.connect(lambda: self._quick_command("push"))
         self.status_panel.pull_btn.clicked.connect(lambda: self._quick_command("pull"))

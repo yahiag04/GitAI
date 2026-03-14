@@ -133,6 +133,35 @@ class GitEngine:
         repo.create_remote(name, url)
         return f"Added remote '{name}' -> {url}"
 
+    def get_diff(self, staged_only: bool = False) -> str:
+        """Get the diff of changes."""
+        repo = self._get_repo()
+
+        if staged_only:
+            # Get diff of staged changes
+            diff = repo.git.diff("--cached")
+        else:
+            # Get diff of all changes (staged + unstaged)
+            diff = repo.git.diff("HEAD")
+
+        if not diff:
+            # Check for untracked files
+            untracked = repo.untracked_files
+            if untracked:
+                diff_parts = []
+                for f in untracked[:5]:  # Limit to first 5 files
+                    try:
+                        content = (self.working_directory / f).read_text()
+                        # Truncate large files
+                        if len(content) > 1000:
+                            content = content[:1000] + "\n... (truncated)"
+                        diff_parts.append(f"New file: {f}\n{content}")
+                    except Exception:
+                        diff_parts.append(f"New file: {f}")
+                diff = "\n\n".join(diff_parts)
+
+        return diff if diff else "No changes detected."
+
     def get_status(self) -> str:
         """Get the current repository status."""
         repo = self._get_repo()

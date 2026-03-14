@@ -1,14 +1,21 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from typing import Optional
 
 from core.command_parser.models import ParseCommandResult
 from core.git_engine.service import GitEngine
 from core.github_service.service import GitHubService, PullRequestInput
+from core.ai_service.service import AIService, create_ai_service
 
 
-@dataclass(slots=True)
+@dataclass
 class RouteDependencies:
     git_engine: GitEngine
     github_service: GitHubService
+    ai_service: Optional[AIService] = field(default=None)
+
+    def __post_init__(self):
+        if self.ai_service is None:
+            self.ai_service = create_ai_service()
 
 
 def route_action(result: ParseCommandResult, dependencies: RouteDependencies) -> str:
@@ -21,9 +28,29 @@ def route_action(result: ParseCommandResult, dependencies: RouteDependencies) ->
     action = result.action
 
     try:
+        if action.action == "smart_commit":
+            # Get diff and generate AI commit message
+            diff = dependencies.git_engine.get_diff()
+            if diff == "No changes detected.":
+                return "Nothing to commit, working tree clean."
+
+            message = dependencies.ai_service.generate_commit_message(diff)
+            result = dependencies.git_engine.commit_changes(message)
+
+            if dependencies.ai_service.is_available():
+                return f"{result}\n(AI-generated message)"
+            else:
+                return f"{result}\n(Auto-generated message - set OPENAI_API_KEY or ANTHROPIC_API_KEY for smarter messages)"
+
         if action.action == "commit_changes":
             message = action.message
             return dependencies.git_engine.commit_changes(message)
+
+        if action.action == "show_diff":
+            diff = dependencies.git_engine.get_diff()
+            if len(diff) > 2000:
+                diff = diff[:2000] + "\n... (truncated)"
+            return diff
 
         if action.action == "push_changes":
             return dependencies.git_engine.push_changes()

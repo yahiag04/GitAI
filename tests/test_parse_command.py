@@ -166,3 +166,39 @@ def test_clone_shorthand() -> None:
     assert result.action is not None
     assert result.action.action == "clone_repo"
     assert result.action.clone_url == "https://github.com/user/repo"
+
+
+def test_smart_commit() -> None:
+    result = parse_command("smart commit")
+    assert result.action is not None
+    assert result.action.action == "smart_commit"
+
+
+def test_ai_commit() -> None:
+    result = parse_command("ai commit")
+    assert result.action is not None
+    assert result.action.action == "smart_commit"
+
+
+def test_commit_with_ai() -> None:
+    result = parse_command("commit with ai")
+    assert result.action is not None
+    assert result.action.action == "smart_commit"
+
+
+def test_show_diff() -> None:
+    result = parse_command("diff")
+    assert result.action is not None
+    assert result.action.action == "show_diff"
+
+
+def test_show_changes() -> None:
+    result = parse_command("show changes")
+    assert result.action is not None
+    assert result.action.action == "show_diff"
+
+
+def test_what_changed() -> None:
+    result = parse_command("what changed")
+    assert result.action is not None
+    assert result.action.action == "show_diff"

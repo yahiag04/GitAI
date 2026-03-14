@@ -5,6 +5,7 @@ from typing import Literal, Optional
 ActionName = Literal[
     "create_repository",
     "commit_changes",
+    "smart_commit",
     "push_changes",
     "pull_changes",
     "create_branch",
@@ -13,6 +14,7 @@ ActionName = Literal[
     "open_pull_request",
     "force_push",
     "show_status",
+    "show_diff",
     "init_repo",
     "clone_repo",
 ]

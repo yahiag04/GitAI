@@ -6,6 +6,16 @@ from core.command_parser.models import ParseCommandResult, CommandAction
 def parse_command(prompt: str) -> ParseCommandResult:
     normalized = prompt.strip().lower()
 
+    # === SMART COMMIT (AI-generated message) ===
+    # "smart commit", "ai commit", "auto commit", "commit with ai"
+    if re.match(r"^(smart|ai|auto)\s+commit$", normalized) or \
+       re.match(r"^commit\s+(with\s+)?(ai|auto|smart)$", normalized):
+        return ParseCommandResult(
+            action=CommandAction(action="smart_commit"),
+            requires_confirmation=False,
+            reasoning="Generating AI commit message.",
+        )
+
     # === COMMIT ===
     # "commit", "commit my changes", "commit changes", "save my work", etc.
     if re.match(r"^(commit|save)(\s+(my\s+)?(changes?|work))?$", normalized):
@@ -126,11 +136,19 @@ def parse_command(prompt: str) -> ParseCommandResult:
         )
 
     # === STATUS ===
-    if normalized in ("status", "show status", "git status", "what changed"):
+    if normalized in ("status", "show status", "git status"):
         return ParseCommandResult(
             action=CommandAction(action="show_status"),
             requires_confirmation=False,
             reasoning="Showing repository status.",
+        )
+
+    # === DIFF ===
+    if normalized in ("diff", "show diff", "show changes", "what changed", "changes"):
+        return ParseCommandResult(
+            action=CommandAction(action="show_diff"),
+            requires_confirmation=False,
+            reasoning="Showing changes.",
         )
 
     # === PULL ===
