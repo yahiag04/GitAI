@@ -13,6 +13,7 @@ from PySide6.QtWidgets import (
     QGraphicsDropShadowEffect,
     QSizePolicy,
     QSpacerItem,
+    QTextBrowser,
 )
 from PySide6.QtCore import Qt, Signal, QThread, QPropertyAnimation, QEasingCurve, Property, QSize
 from PySide6.QtGui import QFont, QKeyEvent, QColor, QIcon
@@ -87,18 +88,27 @@ class ChatBubble(QFrame):
         sender.setObjectName("senderLabel")
         layout.addWidget(sender)
 
-        # Message content - use QLabel with proper sizing
-        message = QLabel(text)
-        message.setWordWrap(True)
-        message.setTextInteractionFlags(Qt.TextSelectableByMouse)
+        # Message content - use QTextBrowser for better text handling
+        message = QTextBrowser()
+        message.setPlainText(text)
+        message.setReadOnly(True)
+        message.setOpenExternalLinks(False)
         message.setObjectName("messageText")
-        message.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
-        message.setMinimumWidth(100)
+        message.setFrameShape(QFrame.NoFrame)
+        message.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        message.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+
+        # Calculate height based on content
+        message.document().setTextWidth(450)
+        doc_height = message.document().size().height()
+        message.setFixedHeight(int(doc_height) + 10)
+
         layout.addWidget(message)
 
-        self.setMinimumWidth(150)
-        self.setMaximumWidth(550)
+        # Let the bubble size naturally based on content
         self.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Minimum)
+        self.setMinimumWidth(150)
+        self.setMaximumWidth(500)
 
         # Add subtle shadow
         shadow = QGraphicsDropShadowEffect()
@@ -578,7 +588,8 @@ class MainWindow(QMainWindow):
             #userBubble #messageText {
                 font-size: 14px;
                 color: #ffffff;
-                line-height: 1.5;
+                background-color: transparent;
+                border: none;
                 padding: 0px;
                 margin: 0px;
             }
@@ -599,7 +610,8 @@ class MainWindow(QMainWindow):
             #assistantBubble #messageText {
                 font-size: 14px;
                 color: #c9d1d9;
-                line-height: 1.5;
+                background-color: transparent;
+                border: none;
                 padding: 0px;
                 margin: 0px;
             }
